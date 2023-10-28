@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type DB struct {
@@ -25,7 +26,10 @@ func Connect(ctx context.Context) (*DB, error) {
 	}
 
 	// Create a new client and connect to the server
-	client, err := gorm.Open(mysql.Open(cfg.MysqlDSN), &gorm.Config{})
+	client, err := gorm.Open(mysql.Open(cfg.MysqlDSN), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
+
 	if err != nil {
 		return nil, errors.Wrapf(err, "%s: disconnected", mysqlErrorPrefix)
 	}

@@ -26,16 +26,17 @@ type UserMysqlRepo struct {
 
 type User struct {
 	ID        uint   `gorm:"primaryKey"`
-	Email     string `gorm:"index"`
-	Password  string
-	CreatedAt int
-	UpdatedAt int
+	Email     string `gorm:"index:,unique;size:256"` // TODO: add case insensitive index
+	Password  string `gorm:"size:256"`
+	CreatedAt int64
+	UpdatedAt int64
 }
 
 func NewUserRepo(db *mysql.DB) *UserMysqlRepo {
 	return &UserMysqlRepo{db}
 }
 
+// get user by id
 func (repo *UserMysqlRepo) GetById(ctx context.Context, id uint) (*domain.User, error) {
 	userDb := User{ID: id}
 	err := repo.db.First(&userDb).Error
@@ -53,6 +54,7 @@ func (repo *UserMysqlRepo) GetById(ctx context.Context, id uint) (*domain.User, 
 	}, nil
 }
 
+// get user by email
 func (repo *UserMysqlRepo) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	userDb := User{}
 	err := repo.db.Where("lower(email) = ?", strings.ToLower(email)).First(&userDb).Error
@@ -70,6 +72,7 @@ func (repo *UserMysqlRepo) GetByEmail(ctx context.Context, email string) (*domai
 	}, nil
 }
 
+// create user
 func (repo *UserMysqlRepo) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
 	userDb := User{
 		Email:     user.Email,
@@ -91,6 +94,7 @@ func (repo *UserMysqlRepo) Create(ctx context.Context, user *domain.User) (*doma
 	return userDomain, nil
 }
 
+// update user
 func (repo *UserMysqlRepo) Update(ctx context.Context, user *domain.User) (*domain.User, error) {
 	userQuery := User{ID: user.ID}
 	userDb := User{
@@ -116,3 +120,5 @@ func (repo *UserMysqlRepo) Update(ctx context.Context, user *domain.User) (*doma
 	}
 	return userDomain, nil
 }
+
+// TODO: delete of soft delete user

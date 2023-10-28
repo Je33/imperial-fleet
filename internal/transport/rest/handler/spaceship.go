@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -74,6 +75,18 @@ func (h *SpaceshipHandler) GetById(ctx echo.Context) error {
 	}
 
 	spaceship, err := h.service.GetById(ctx.Request().Context(), uint(idInt))
+	if err != nil {
+		return err
+	}
+
+	modelSpaceshipArmament := make([]model.SpaceshipArmament, 0, len(spaceship.Armament))
+	for _, a := range spaceship.Armament {
+		modelSpaceshipArmament = append(modelSpaceshipArmament, model.SpaceshipArmament{
+			Title: a.Title,
+			Qty:   a.Qty,
+		})
+	}
+
 	restSpaceship := model.SpaceshipFull{
 		ID:       spaceship.ID,
 		Name:     spaceship.Name,
@@ -82,7 +95,7 @@ func (h *SpaceshipHandler) GetById(ctx echo.Context) error {
 		Image:    spaceship.Image,
 		Value:    spaceship.Value,
 		Status:   spaceship.Status.String(),
-		Armament: spaceship.Armament,
+		Armament: modelSpaceshipArmament,
 	}
 	return ctx.JSON(http.StatusOK, restSpaceship)
 }
@@ -95,6 +108,14 @@ func (h *SpaceshipHandler) CreateSpaceship(ctx echo.Context) error {
 		return err
 	}
 
+	domainSpaceshipArmament := make([]domain.SpaceshipArmament, 0, len(spaceship.Armament))
+	for _, a := range spaceship.Armament {
+		domainSpaceshipArmament = append(domainSpaceshipArmament, domain.SpaceshipArmament{
+			Title: a.Title,
+			Qty:   a.Qty,
+		})
+	}
+
 	domainSpaceship := &domain.Spaceship{
 		Name:     spaceship.Name,
 		Class:    spaceship.Class,
@@ -102,7 +123,7 @@ func (h *SpaceshipHandler) CreateSpaceship(ctx echo.Context) error {
 		Status:   domain.SpaceshipStatusFromString(spaceship.Status),
 		Image:    spaceship.Image,
 		Value:    spaceship.Value,
-		Armament: spaceship.Armament,
+		Armament: domainSpaceshipArmament,
 	}
 
 	err = h.service.CreateSpaceship(ctx.Request().Context(), domainSpaceship)
@@ -121,6 +142,27 @@ func (h *SpaceshipHandler) UpdateSpaceship(ctx echo.Context) error {
 		return err
 	}
 
+	idString := ctx.Param("id")
+	idInt, err := strconv.Atoi(idString)
+
+	if err != nil {
+		return err
+	}
+
+	if idInt < 0 {
+		return domain.ErrNotFound
+	}
+
+	spaceship.ID = uint(idInt)
+
+	domainSpaceshipArmament := make([]domain.SpaceshipArmament, 0, len(spaceship.Armament))
+	for _, a := range spaceship.Armament {
+		domainSpaceshipArmament = append(domainSpaceshipArmament, domain.SpaceshipArmament{
+			Title: a.Title,
+			Qty:   a.Qty,
+		})
+	}
+
 	domainSpaceship := &domain.Spaceship{
 		ID:       spaceship.ID,
 		Name:     spaceship.Name,
@@ -129,7 +171,7 @@ func (h *SpaceshipHandler) UpdateSpaceship(ctx echo.Context) error {
 		Status:   domain.SpaceshipStatusFromString(spaceship.Status),
 		Image:    spaceship.Image,
 		Value:    spaceship.Value,
-		Armament: spaceship.Armament,
+		Armament: domainSpaceshipArmament,
 	}
 
 	err = h.service.UpdateSpaceship(ctx.Request().Context(), domainSpaceship)
@@ -142,15 +184,22 @@ func (h *SpaceshipHandler) UpdateSpaceship(ctx echo.Context) error {
 
 func (h *SpaceshipHandler) DeleteSpaceship(ctx echo.Context) error {
 
-	spaceship := new(model.SpaceshipFull)
-	err := ctx.Bind(spaceship)
+	idString := ctx.Param("id")
+	idInt, err := strconv.Atoi(idString)
+
 	if err != nil {
 		return err
 	}
 
-	domainSpaceship := &domain.Spaceship{
-		ID: spaceship.ID,
+	if idInt < 0 {
+		return domain.ErrNotFound
 	}
+
+	domainSpaceship := &domain.Spaceship{
+		ID: uint(idInt),
+	}
+
+	fmt.Println(domainSpaceship)
 
 	err = h.service.DeleteSpaceship(ctx.Request().Context(), domainSpaceship)
 	if err != nil {

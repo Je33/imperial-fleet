@@ -22,6 +22,7 @@ var (
 	_ UserService = (*service.UserService)(nil)
 )
 
+// jwt token struct
 type jwtCustomClaims struct {
 	Email string `json:"email"`
 	jwt.RegisteredClaims

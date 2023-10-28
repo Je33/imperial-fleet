@@ -12,10 +12,13 @@ import (
 	"github.com/Je33/imperial_fleet/internal/service"
 	"github.com/Je33/imperial_fleet/internal/transport/rest/handler"
 
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoLog "github.com/labstack/gommon/log"
 )
+
+// TODO: create swagger doc
 
 func RunRest() error {
 
@@ -62,18 +65,16 @@ func RunRest() error {
 
 	// Auth jwt request
 	v1.POST("/auth", userHandler.Auth)
-
-	// User
-	//r := v1.Group("/user")
-	//r.Use(echojwt.JWT([]byte(cfg.JWTSecret)))
-	//r.GET("/me", userHandler.Me)
+	v1.POST("/register", userHandler.Register)
 
 	// Spaceship
-	v1.GET("/spaceships", spaceshipHandler.GetAll)
-	v1.GET("/spaceships/:id", spaceshipHandler.GetById)
-	v1.POST("/spaceships", spaceshipHandler.CreateSpaceship)
-	v1.POST("/spaceships/:id", spaceshipHandler.UpdateSpaceship)
-	v1.DELETE("/spaceships/:id", spaceshipHandler.DeleteSpaceship)
+	sg := v1.Group("/spaceships")
+	sg.Use(echojwt.JWT([]byte(cfg.JWTSecret)))
+	sg.GET("", spaceshipHandler.GetAll)
+	sg.GET("/:id", spaceshipHandler.GetById)
+	sg.POST("", spaceshipHandler.CreateSpaceship)
+	sg.POST("/:id", spaceshipHandler.UpdateSpaceship)
+	sg.DELETE("/:id", spaceshipHandler.DeleteSpaceship)
 
 	// Start server
 	s := &http.Server{

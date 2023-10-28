@@ -22,9 +22,9 @@ func (s SpaceshipStatus) String() string {
 // TODO: redo enum
 func SpaceshipStatusFromString(s string) SpaceshipStatus {
 	switch s {
-	case "Operational":
+	case "operational":
 		return SpaceshipStatusOperational
-	case "Damaged":
+	case "damaged":
 		return SpaceshipStatusDamaged
 	default:
 		return SpaceshipStatusUndefined
@@ -48,6 +48,6 @@ type Spaceship struct {
 	Image     string
 	Value     float64
 	Status    SpaceshipStatus
-	CreatedAt uint
-	UpdatedAt uint
+	CreatedAt int64
+	UpdatedAt int64
 }
